@@ -3,6 +3,14 @@
 #include "gloo/utils.hpp"
 #include "BindGuard.hpp"
 
+// Anisotropic filtering extension constants (if not already defined)
+#ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
+#define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
+#endif
+#ifndef GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
+#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
+#endif
+
 namespace GLOO {
 Texture::Texture() {
   Initialize(GetDefaultConfig());
@@ -26,13 +34,22 @@ void Texture::Initialize(const TextureConfig& config) {
   for (auto& kv : final_config) {
     GL_CHECK(glTexParameteri(GL_TEXTURE_2D, kv.first, kv.second));
   }
+  
+  // Enable anisotropic filtering if available
+  // This improves texture quality when viewing at oblique angles
+  GLfloat max_anisotropy = 0.0f;
+  glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
+  if (max_anisotropy > 1.0f) {
+    // Use maximum available anisotropic filtering
+    GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy));
+  }
 }
 
 const TextureConfig& Texture::GetDefaultConfig() {
   static TextureConfig config{
       {GL_TEXTURE_WRAP_S, GL_REPEAT},
       {GL_TEXTURE_WRAP_T, GL_REPEAT},
-      {GL_TEXTURE_MIN_FILTER, GL_LINEAR},
+      {GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR},  // Enable trilinear filtering with mipmaps
       {GL_TEXTURE_MAG_FILTER, GL_LINEAR},
   };
 
@@ -72,6 +89,10 @@ void Texture::UpdateImage(const Image& image) {
   GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, (GLsizei)image.GetWidth(),
                         (GLsizei)image.GetHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,
                         buffer.data()));
+  
+  // Generate mipmaps for this texture
+  // This creates progressively smaller versions for better performance and quality at distance
+  GL_CHECK(glGenerateMipmap(GL_TEXTURE_2D));
 }
 
 void Texture::Reserve(GLint internal_format,

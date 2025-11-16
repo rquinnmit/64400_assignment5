@@ -6,4 +6,4 @@
 
  - No known problems
 
- - I did the PCF (3%) to reduce the aliasing, 
+ - I did the PCF (3%) to reduce the aliasing, bilinear texture filtering with mip-mapping (3%), 

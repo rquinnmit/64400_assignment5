@@ -8,6 +8,7 @@
 #include "Scene.hpp"
 #include "utils.hpp"
 #include "gl_wrapper/BindGuard.hpp"
+#include "gl_wrapper/Texture.hpp"
 #include "shaders/ShaderProgram.hpp"
 #include "shaders/ShadowShader.hpp"
 #include "components/ShadingComponent.hpp"
@@ -27,7 +28,14 @@ Renderer::Renderer(Application& application) : application_(application) {
   UNUSED(application_);
   
   // Initialize shadow depth texture (4096 x 4096)
-  shadow_depth_tex_.reset(new Texture());
+  // Shadow depth textures need special filtering - NO mipmaps, LINEAR filtering
+  TextureConfig shadow_config{
+      {GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE},
+      {GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE},
+      {GL_TEXTURE_MIN_FILTER, GL_LINEAR},
+      {GL_TEXTURE_MAG_FILTER, GL_LINEAR},
+  };
+  shadow_depth_tex_.reset(new Texture(shadow_config));
   shadow_depth_tex_->Reserve(GL_DEPTH_COMPONENT, kShadowWidth, kShadowHeight, 
                               GL_DEPTH_COMPONENT, GL_FLOAT);
   
