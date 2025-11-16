@@ -134,6 +134,7 @@ CMakeFiles/assignment5.dir/gloo/Renderer.cpp.obj: \
  C:/msys64/ucrt64/include/c++/15.2.0/bits/ostream.tcc \
  C:/msys64/ucrt64/include/c++/15.2.0/istream \
  C:/msys64/ucrt64/include/c++/15.2.0/bits/istream.tcc \
+ C:/msys64/ucrt64/include/c++/15.2.0/limits \
  C:/Users/pyanq/6.4400/assignment5/external/src/glad/include/glad/glad.h \
  C:/Users/pyanq/6.4400/assignment5/external/src/glad/include/KHR/khrplatform.h \
  C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stdint.h \
@@ -151,7 +152,6 @@ CMakeFiles/assignment5.dir/gloo/Renderer.cpp.obj: \
  C:/msys64/ucrt64/include/c++/15.2.0/cfloat \
  C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/float.h \
  C:/msys64/ucrt64/include/float.h \
- C:/msys64/ucrt64/include/c++/15.2.0/limits \
  C:/Users/pyanq/6.4400/assignment5/external/src/glm-0.9.9.8/glm/fwd.hpp \
  C:/Users/pyanq/6.4400/assignment5/external/src/glm-0.9.9.8/glm/detail/qualifier.hpp \
  C:/Users/pyanq/6.4400/assignment5/external/src/glm-0.9.9.8/glm/detail/setup.hpp \
@@ -418,4 +418,6 @@ CMakeFiles/assignment5.dir/gloo/Renderer.cpp.obj: \
  C:/Users/pyanq/6.4400/assignment5/gloo/shaders/ShaderProgram.hpp \
  C:\Users\pyanq\6.4400\assignment5\gloo\lights/DirectionalLight.hpp \
  C:\Users\pyanq\6.4400\assignment5\gloo\lights/LightBase.hpp \
- C:\Users\pyanq\6.4400\assignment5\gloo\debug/PrimitiveFactory.hpp
+ C:\Users\pyanq\6.4400\assignment5\gloo\debug/PrimitiveFactory.hpp \
+ C:\Users\pyanq\6.4400\assignment5\gloo\VertexObject.hpp \
+ C:\Users\pyanq\6.4400\assignment5\gloo\alias_types.hpp

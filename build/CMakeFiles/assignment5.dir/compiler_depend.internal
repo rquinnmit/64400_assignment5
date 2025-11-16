@@ -4311,6 +4311,8 @@ CMakeFiles/assignment5.dir/gloo/Renderer.cpp.obj
  C:/Users/pyanq/6.4400/assignment5/gloo/Scene.hpp
  C:/Users/pyanq/6.4400/assignment5/gloo/SceneNode.hpp
  C:/Users/pyanq/6.4400/assignment5/gloo/Transform.hpp
+ C:/Users/pyanq/6.4400/assignment5/gloo/VertexObject.hpp
+ C:/Users/pyanq/6.4400/assignment5/gloo/alias_types.hpp
  C:/Users/pyanq/6.4400/assignment5/gloo/components/CameraComponent.hpp
  C:/Users/pyanq/6.4400/assignment5/gloo/components/ComponentBase.hpp
  C:/Users/pyanq/6.4400/assignment5/gloo/components/ComponentType.hpp

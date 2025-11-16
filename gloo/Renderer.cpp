@@ -1,6 +1,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <limits>
 #include <glad/glad.h>
 #include <glm/gtx/string_cast.hpp>
 
@@ -13,8 +14,12 @@
 #include "shaders/ShadowShader.hpp"
 #include "components/ShadingComponent.hpp"
 #include "components/CameraComponent.hpp"
+#include "components/RenderingComponent.hpp"
 #include "lights/DirectionalLight.hpp"
 #include "debug/PrimitiveFactory.hpp"
+#include "VertexObject.hpp"
+#include "alias_types.hpp"
+#include <unordered_map>
 
 namespace {
 const size_t kShadowWidth = 4096;
@@ -98,6 +103,84 @@ Renderer::RenderingInfo Renderer::RetrieveRenderingInfo(
   // Efficient implementation without redundant matrix multiplications.
   RecursiveRetrieve(root, info, glm::mat4(1.0f));
   return info;
+}
+
+glm::mat4 Renderer::ComputeTightLightProjection(
+    const RenderingInfo& rendering_info,
+    const glm::mat4& light_view) const {
+  // Compute scene bounding box in light space
+  // OPTIMIZATION: Use 8-corner AABB instead of iterating all vertices
+  glm::vec3 min_bounds(std::numeric_limits<float>::max());
+  glm::vec3 max_bounds(std::numeric_limits<float>::lowest());
+  
+  for (const auto& pr : rendering_info) {
+    auto robj_ptr = pr.first;
+    const glm::mat4& model_matrix = pr.second;
+    
+    // Get vertex positions from the vertex object
+    auto vertex_obj = robj_ptr->GetVertexObjectPtr();
+    if (!vertex_obj->HasPositions()) {
+      continue;
+    }
+    
+    const PositionArray& positions = vertex_obj->GetPositions();
+    if (positions.empty()) {
+      continue;
+    }
+    
+    // Check cache first
+    glm::vec3 obj_min, obj_max;
+    auto cache_it = aabb_cache_.find(vertex_obj);
+    if (cache_it != aabb_cache_.end()) {
+      // Use cached AABB
+      obj_min = cache_it->second.first;
+      obj_max = cache_it->second.second;
+    } else {
+      // Compute object-space AABB and cache it
+      obj_min = glm::vec3(std::numeric_limits<float>::max());
+      obj_max = glm::vec3(std::numeric_limits<float>::lowest());
+      
+      for (const auto& pos : positions) {
+        obj_min = glm::min(obj_min, pos);
+        obj_max = glm::max(obj_max, pos);
+      }
+      
+      // Cache the result
+      aabb_cache_[vertex_obj] = std::make_pair(obj_min, obj_max);
+    }
+    
+    // Transform the 8 corners of the AABB to light space
+    glm::vec3 corners[8] = {
+      glm::vec3(obj_min.x, obj_min.y, obj_min.z),
+      glm::vec3(obj_max.x, obj_min.y, obj_min.z),
+      glm::vec3(obj_min.x, obj_max.y, obj_min.z),
+      glm::vec3(obj_max.x, obj_max.y, obj_min.z),
+      glm::vec3(obj_min.x, obj_min.y, obj_max.z),
+      glm::vec3(obj_max.x, obj_min.y, obj_max.z),
+      glm::vec3(obj_min.x, obj_max.y, obj_max.z),
+      glm::vec3(obj_max.x, obj_max.y, obj_max.z),
+    };
+    
+    for (const auto& corner : corners) {
+      glm::vec4 world_pos = model_matrix * glm::vec4(corner, 1.0f);
+      glm::vec4 light_space_pos = light_view * world_pos;
+      
+      min_bounds = glm::min(min_bounds, glm::vec3(light_space_pos));
+      max_bounds = glm::max(max_bounds, glm::vec3(light_space_pos));
+    }
+  }
+  
+  // Add small padding to avoid clipping issues
+  float padding = 2.0f;
+  min_bounds -= glm::vec3(padding);
+  max_bounds += glm::vec3(padding);
+  
+  // Create tight orthographic projection from the computed bounds
+  // Note: For OpenGL, near/far values are positive distances from the camera
+  // The light is looking down the -Z axis, so we negate the Z bounds
+  return glm::ortho(min_bounds.x, max_bounds.x,      // left, right
+                    min_bounds.y, max_bounds.y,      // bottom, top
+                    -max_bounds.z, -min_bounds.z);   // near, far (negated for correct orientation)
 }
 
 void Renderer::RenderShadow(const RenderingInfo& rendering_info,
@@ -191,7 +274,10 @@ void Renderer::RenderScene(const Scene& scene) const {
       // Get the light's transform to compute world_to_light_ndc matrix
       auto light_node = light.GetNodePtr();
       glm::mat4 light_view = glm::inverse(light_node->GetTransform().GetLocalToWorldMatrix());
-      glm::mat4 world_to_light_ndc_matrix = kLightProjection * light_view;
+      
+      // Compute tight-fitting orthographic projection based on scene bounds
+      glm::mat4 light_projection = ComputeTightLightProjection(rendering_info, light_view);
+      glm::mat4 world_to_light_ndc_matrix = light_projection * light_view;
       
       // Render the shadow map
       RenderShadow(rendering_info, light, world_to_light_ndc_matrix);

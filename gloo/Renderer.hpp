@@ -35,6 +35,12 @@ class Renderer {
                    const LightComponent& light,
                    const glm::mat4& world_to_light_ndc_matrix) const;
   
+  glm::mat4 ComputeTightLightProjection(const RenderingInfo& rendering_info,
+                                        const glm::mat4& light_view) const;
+  
+  // Cache for object AABBs (mutable because computed in const method)
+  mutable std::unordered_map<const VertexObject*, std::pair<glm::vec3, glm::vec3>> aabb_cache_;
+  
   std::unique_ptr<VertexObject> quad_;
 
   void RenderTexturedQuad(const Texture& texture, bool is_depth) const;
