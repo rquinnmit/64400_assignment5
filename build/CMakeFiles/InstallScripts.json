@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/pyanq/6.4400/assignment5/build/cmake_install.cmake",
+		"C:/Users/pyanq/6.4400/assignment5/build/external/src/glfw-3.3.2/cmake_install.cmake",
+		"C:/Users/pyanq/6.4400/assignment5/build/external/src/glfw-3.3.2/src/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
