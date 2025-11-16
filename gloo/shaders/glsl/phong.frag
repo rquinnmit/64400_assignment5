@@ -111,17 +111,27 @@ float CalculateShadow(vec3 world_pos) {
         return 0.0; // No shadow outside the light's frustum
     }
     
-    // Get closest depth value from shadow map
-    float closest_depth = texture(shadow_map, proj_coords.xy).r;
-    
     // Get depth of current fragment from light's perspective
     float current_depth = proj_coords.z;
     
     // Apply bias to prevent shadow acne
     float bias = 0.005;
     
-    // Check whether current fragment is in shadow
-    float shadow = current_depth - bias > closest_depth ? 1.0 : 0.0;
+    // Percentage-Closer Filtering (PCF) for soft shadow edges
+    // Sample a 3x3 grid around the current position and average the results
+    float shadow = 0.0;
+    float texel_size = 1.0 / 4096.0; // Shadow map resolution is 4096x4096
+    
+    for(int x = -1; x <= 1; ++x) {
+        for(int y = -1; y <= 1; ++y) {
+            vec2 offset = vec2(x, y) * texel_size;
+            float closest_depth = texture(shadow_map, proj_coords.xy + offset).r;
+            shadow += current_depth - bias > closest_depth ? 1.0 : 0.0;
+        }
+    }
+    
+    // Average over 3x3 = 9 samples
+    shadow /= 9.0;
     
     return shadow;
 }
